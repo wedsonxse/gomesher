@@ -14,7 +14,7 @@ type QueueConnector struct {
 func CreateQueueConnector(user,password,host string) (*QueueConnector,error){
 	conn, err := net.Dial("tcp",host)
 	if err != nil{
-		err := fmt.Errorf("erro no dial - %w",err)
+		err := fmt.Errorf("dial error - %w",err)
 		return nil, err
 	}
 
@@ -25,7 +25,7 @@ func CreateQueueConnector(user,password,host string) (*QueueConnector,error){
 	)
 
 	if err != nil {
-		err := fmt.Errorf("erro na conexão - %w",err)
+		err := fmt.Errorf("connection error - %w",err)
 		return nil,err
 	}
 
@@ -38,7 +38,7 @@ func (q *QueueConnector) SendMessage(queueName , message string) error {
 		return err
 	}
 
-	fmt.Println("Mensagem enviada com sucesso para a fila!")
+	fmt.Println("Message sent to queue!")
 	return nil
 }
 

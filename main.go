@@ -19,29 +19,29 @@ func main(){
 		);
 
 	if err != nil {
-		err := fmt.Errorf("erro na hora de configurar o Gerenciador de fila - %w", err)
+		err := fmt.Errorf("file manager config - %w", err)
 		fmt.Println(err)
 	}
 
-	fmt.Println("O gerenciador de fila foi criado...")
+	fmt.Println("Queue manager was created...")
 
 	for {
 		var uniName string
-		fmt.Println("Digite o termo que deseja buscar as universidades:")
+		fmt.Println("Type the term to search in the university API:")
 		fmt.Scanln(& uniName);
 		
 		url := os.Getenv("EXTERNAL_API")
 
 		response, err := http.Get(url+"="+uniName)
 		if err != nil {
-			fmt.Println("Erro na hora da requisição")
+			fmt.Println("Request Error")
 			return
 		}
 	
 		defer response.Body.Close()
 	
 		if response.StatusCode != http.StatusOK {
-			fmt.Println("Ocorreu um problema, código de erro: ", response.StatusCode)
+			fmt.Println("A problem ocurred, error code: ", response.StatusCode)
 			return
 		}
 	
@@ -49,12 +49,12 @@ func main(){
 	
 		err = json.NewDecoder(response.Body).Decode(&uniArray)
 		if err != nil {
-			fmt.Println("Deu erro na hora de desserializar o json: ", err)
+			fmt.Println("Unmarshalling json error: ", err)
 			return
 		}
 	
 		for _, uni := range uniArray{
-			message := fmt.Sprintf("Informações das universidades: %s - %s - %s", uni.Name, uni.Country, uni.Country)
+			message := fmt.Sprintf("Universities Informations: %s - %s - %s", uni.Name, uni.Country, uni.Country)
 			queueConnector.SendMessage(os.Getenv("QUEUE_NAME"),message)
 		}
 	}
