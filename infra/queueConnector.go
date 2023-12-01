@@ -8,7 +8,7 @@ import (
 )
 
 type QueueConnector struct {
-	conn *stomp.Conn
+	Conn *stomp.Conn
 }
 
 func CreateQueueConnector(user,password,host string) (*QueueConnector,error){
@@ -29,11 +29,11 @@ func CreateQueueConnector(user,password,host string) (*QueueConnector,error){
 		return nil,err
 	}
 
-	return &QueueConnector{ conn: stompConn }, nil
+	return &QueueConnector{ Conn: stompConn }, nil
 }
 
 func (q *QueueConnector) SendMessage(queueName , message string) error {
-	err := q.conn.Send(queueName, "text/plain", []byte(message), stomp.SendOpt.Receipt)
+	err := q.Conn.Send(queueName, "text/plain", []byte(message), stomp.SendOpt.Receipt)
 	if err != nil{
 		return err
 	}
@@ -42,7 +42,17 @@ func (q *QueueConnector) SendMessage(queueName , message string) error {
 	return nil
 }
 
+func (q *QueueConnector) SubscribeToQueue (queueName string) (*stomp.Subscription, error) {
+	sub, err := q.Conn.Subscribe(queueName, stomp.AckAuto)
+	if err != nil {
+		err = fmt.Errorf("subscription error - %w", err)
+		return nil,err
+	}
+	defer sub.Unsubscribe();
+	return sub,nil
+}
+
 
 func (q *QueueConnector) CloseConnection () {
-	q.conn.Disconnect()
+	q.Conn.Disconnect()
 }
