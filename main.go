@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"os"
 	"time"
-
-	"github.com/go-stomp/stomp"
 )
 
 func produceMessages (connector *infra.QueueConnector) error {
@@ -49,10 +47,19 @@ func produceMessages (connector *infra.QueueConnector) error {
 	}
 }
 
-func consumeMessages (subChannel *stomp.Subscription, q *infra.QueueConnector) {
+func consumeMessages (q *infra.QueueConnector) {
+
+	subChannel, err := q.SubscribeToQueue(os.Getenv("QUEUE_NAME"))
+	if err != nil {
+		err := fmt.Errorf("sub error- %w", err)
+		fmt.Println(err)
+	}
+	defer subChannel.Unsubscribe()
+
+	fmt.Println("Id so subchannel: ",subChannel.Id(),subChannel.Active())
 		for {
 			select {
-			case message := <-subChannel.C:	
+			case message := <-subChannel.C:
 				if message != nil {
 					fmt.Println("Received Message:", string(message.Body))
 					err := q.Conn.Ack(message)
@@ -80,15 +87,9 @@ func main(){
 		fmt.Println(err)
 	}
 
-	subChannel, err := queueConnector.SubscribeToQueue("QUEUE_NAME")
-	if err != nil {
-		err := fmt.Errorf("sub error- %w", err)
-		fmt.Println(err)
-	}
-
 	fmt.Println("Queue manager was created...")
 
-	go consumeMessages(subChannel, queueConnector)
+	go consumeMessages(queueConnector)
 
 	go produceMessages(queueConnector)
 
