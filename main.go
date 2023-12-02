@@ -43,7 +43,9 @@ func produceMessages (connector *infra.QueueConnector) error {
 			message := fmt.Sprintf("Universities Informations: %s - %s - %s", uni.Name, uni.Country, uni.Country)
 			connector.SendMessage(os.Getenv("QUEUE_NAME"),message)
 		}
-		time.Sleep(1 * time.Second)
+		fmt.Println("Messages sent to queue!")
+		fmt.Println("<------------------------------------------>")
+		time.Sleep(5 * time.Second)
 	}
 }
 
@@ -54,12 +56,15 @@ func consumeMessages (q *infra.QueueConnector) {
 		err := fmt.Errorf("sub error- %w", err)
 		fmt.Println(err)
 	}
-	defer subChannel.Unsubscribe()
 
-	fmt.Println("Id so subchannel: ",subChannel.Id(),subChannel.Active())
-		for {
-			select {
-			case message := <-subChannel.C:
+	defer func() {
+		subChannel.Unsubscribe()
+		fmt.Println("Unsubscribed from the channel.")
+	}()
+
+	go func(){
+
+		for message := range subChannel.C {
 				if message != nil {
 					fmt.Println("Received Message:", string(message.Body))
 					err := q.Conn.Ack(message)
@@ -68,10 +73,12 @@ func consumeMessages (q *infra.QueueConnector) {
 					}				
 				}
 	
-				time.Sleep(1 * time.Second)
-			}
+				time.Sleep(200 * time.Millisecond)
+				}
+			}()
+
+			select {}
 		}
-}
 
 func main(){
 	infra.LoadEnv();
@@ -92,6 +99,6 @@ func main(){
 	go consumeMessages(queueConnector)
 
 	go produceMessages(queueConnector)
-
+	
 	select {}
 }

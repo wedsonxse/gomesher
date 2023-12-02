@@ -38,7 +38,6 @@ func (q *QueueConnector) SendMessage(queueName , message string) error {
 		return err
 	}
 
-	fmt.Println("Message sent to queue!")
 	return nil
 }
 
@@ -48,7 +47,7 @@ func (q *QueueConnector) SubscribeToQueue (queueName string) (*stomp.Subscriptio
 		err = fmt.Errorf("subscription error - %w", err)
 		return nil,err
 	}
-	defer sub.Unsubscribe();
+	
 	return sub,nil
 }
 
